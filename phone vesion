@@ -3,355 +3,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Song, Young-Min Guitar Lab - Mobile</title>
+    <title>Song Young-Min Guitar Lab - Final</title>
     <style>
-        /* 모바일 최적화 스타일 */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: none; }
         body { 
-            background-color: #121212; 
-            margin: 0; 
-            color: #eee; 
-            font-family: 'Malgun Gothic', sans-serif; 
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh;
-            touch-action: manipulation; /* 더블탭 확대 방지 */
-        }
-        
-        /* 상단 정보 영역 */
-        #header-panel {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            background: #231914;
-            padding: 10px;
-            border-bottom: 2px solid #5d4037;
+            background-color: #121212; margin: 0; color: #eee; 
+            font-family: 'Malgun Gothic', sans-serif; overflow: hidden; 
+            display: flex; flex-direction: column; height: 100vh; 
         }
 
-        .info-box { text-align: center; }
-        .info-label { font-size: 12px; color: #bcaaa4; display: block; }
-        .info-value { font-size: 18px; color: #ffca28; font-weight: bold; }
+        /* 1. 시작 로고 화면 */
+        #splash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #1a1a1a; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 100;
+            transition: opacity 0.8s ease;
+        }
+        #splash h1 { color: #ffca28; font-size: 28px; margin-bottom: 10px; text-align: center; line-height: 1.4; }
+        #splash p { color: #bcaaa4; font-size: 14px; letter-spacing: 2px; }
 
-        /* 게임 메인 영역 */
-        #game-area {
-            flex: 1;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #1a1a1a;
-            overflow: hidden;
+        /* 2. 상단 상태바 */
+        #top-bar {
+            background: #231914; display: flex; justify-content: space-between;
+            align-items: center; padding: 10px 15px; height: 80px;
+            border-bottom: 3px solid #5d4037;
+        }
+        .status-item { text-align: center; flex: 1; }
+        .label { font-size: 10px; color: #bcaaa4; display: block; }
+        .value { font-size: 18px; color: #ffca28; font-weight: bold; }
+        #nextCanvas { background: rgba(0,0,0,0.5); border-radius: 4px; }
+
+        /* 3. 게임 영역 */
+        #game-container { 
+            flex: 1; position: relative; display: flex; 
+            justify-content: center; align-items: center; background: #1a1a1a;
+        }
+        canvas#tetris { 
+            background: #000; border: 4px solid #5d4037;
+            max-width: 95%; max-height: 98%; 
+        }
+        #chord-notify {
+            position: absolute; top: 30%; width: 100%; text-align: center;
+            font-size: 34px; font-weight: 900; color: #00e676;
+            text-shadow: 0 0 15px #000; z-index: 50; pointer-events: none; display: none;
         }
 
-        canvas#tetris {
-            max-height: 95%;
-            max-width: 95%;
-            border: 4px solid #4e342e;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-
-        /* 하단 터치 컨트롤 패널 */
+        /* 4. 컨트롤러 (버튼 크기 및 배치 최적화) */
         #controls {
-            background: #231914;
-            padding: 15px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(2, 1fr);
-            gap: 10px;
-            height: 180px;
-            border-top: 2px solid #5d4037;
+            background: #231914; display: grid; 
+            grid-template-columns: 1fr 1fr 1fr 0.6fr;
+            gap: 8px; padding: 12px; height: 130px; border-top: 3px solid #5d4037;
         }
-
-        .btn {
-            background: #6d4c41;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 24px;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px #3e2723;
-            active-transform: translateY(2px);
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
+        .btn-ctrl {
+            background: #6d4c41; color: #fff; border: none; border-radius: 12px;
+            font-size: 38px; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 5px #3e2723;
         }
-
-        .btn:active {
-            background: #8d6e63;
-            transform: translateY(2px);
-            box-shadow: 0 2px #3e2723;
+        .btn-ctrl:active { transform: translateY(3px); box-shadow: 0 2px #3e2723; background: #8d6e63; }
+        .btn-drop { 
+            background: #bf360c; font-size: 12px; font-weight: 900; 
+            height: 60%; align-self: center; border-radius: 8px; 
+            box-shadow: 0 3px #5f1b06; 
         }
-
-        .btn-reset { background: #4e342e; font-size: 16px; }
-        .btn-drop { background: #bf360c; }
-
-        /* 메시지 오버레이 */
-        #msg-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 100;
-            pointer-events: none;
-        }
-        #msg { font-size: 24px; font-weight: bold; color: #81c784; text-shadow: 2px 2px 4px #000; }
-        
-        #nextCanvas { background: rgba(0,0,0,0.3); border-radius: 5px; margin-top: 5px; }
     </style>
 </head>
 <body>
 
-<div id="header-panel">
-    <div class="info-box">
-        <span class="info-label">NEXT</span>
-        <canvas id="nextCanvas" width="50" height="50"></canvas>
+<div id="splash">
+    <h1>SONG, YOUNG-MIN<br>Guitar Lab</h1>
+    <p>10th Anniversary Edition</p>
+</div>
+
+<div id="top-bar">
+    <div class="status-item">
+        <span class="label">NEXT</span>
+        <canvas id="nextCanvas" width="36" height="36"></canvas>
     </div>
-    <div class="info-box">
-        <span class="info-label">SCORE</span>
-        <span id="score" class="info-value">0</span>
+    <div class="status-item">
+        <span class="label">SCORE</span>
+        <span id="score" class="value">0</span>
     </div>
-    <div class="info-box">
-        <span class="info-label">TIME</span>
-        <span id="timer" class="info-value">00:00</span>
+    <div class="status-item">
+        <span class="label">TIME</span>
+        <span id="timer" class="value">00:00</span>
+    </div>
+    <div class="admin-btns" style="display:flex; flex-direction:column; gap:4px;">
+        <button id="pauseBtn" onclick="togglePause()" style="padding:4px; font-size:10px; background:#4e342e; color:#fff; border:1px solid #8d6e63;">P/R</button>
+        <button id="resetBtn" onclick="location.reload()" style="padding:4px; font-size:10px; background:#4e342e; color:#fff; border:1px solid #8d6e63;">RESET</button>
     </div>
 </div>
 
-<div id="game-area">
+<div id="game-container">
+    <div id="chord-notify">C Major!</div>
     <canvas id="tetris"></canvas>
-    <div id="msg-overlay"><div id="msg"></div></div>
 </div>
 
 <div id="controls">
-    <div class="btn" id="leftBtn">◀</div>
-    <div class="btn" id="downBtn">▼</div>
-    <div class="btn" id="rightBtn">▶</div>
-    <button class="btn btn-reset" onclick="resetGame()">RESET</button>
-    <div class="btn btn-drop" id="hardDropBtn">DROP</div>
-    <button class="btn btn-reset" onclick="paused = !paused; showMsg(paused?'PAUSE':'RESUME')">P/R</button>
+    <button class="btn-ctrl" id="leftBtn">◀</button>
+    <button class="btn-ctrl" id="downBtn">▼</button>
+    <button class="btn-ctrl" id="rightBtn">▶</button>
+    <button class="btn-ctrl btn-drop" id="dropBtn">DROP</button>
 </div>
 
 <script>
     const canvas = document.getElementById('tetris');
     const ctx = canvas.getContext('2d');
-    const nextCanvas = document.getElementById('nextCanvas');
-    const nCtx = nextCanvas.getContext('2d');
-    const scoreElement = document.getElementById('score');
-    const timerElement = document.getElementById('timer');
-    const msgElement = document.getElementById('msg');
+    const nCanvas = document.getElementById('nextCanvas');
+    const nCtx = nCanvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const timeEl = document.getElementById('timer');
+    const chordNotify = document.getElementById('chord-notify');
 
-    const ROW = 18, COL = 10; // 모바일 가로 비율을 위해 10칸으로 조정
-    const SQ = Math.min(window.innerWidth / (COL + 2), (window.innerHeight - 300) / ROW);
-    
-    canvas.width = COL * SQ;
-    canvas.height = ROW * SQ;
+    const ROWS = 18, COLS = 10;
+    let SQ = 20;
 
-    const VACANT = "rgba(255, 255, 255, 0.05)";
     const NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-    const CHORD_DB = [
-        { name: 'C Major', keys: 'CEG', score: 100 },
-        { name: 'D minor', keys: 'ADF', score: 50 },
-        { name: 'E minor', keys: 'BEG', score: 50 },
-        { name: 'F Major', keys: 'ACF', score: 100 },
-        { name: 'G Major', keys: 'BDG', score: 100 },
-        { name: 'A minor', keys: 'ACE', score: 50 },
-        { name: 'B dim',   keys: 'BDF', score: 50 }
+    const CHORDS = [
+        {k:'CEG', n:'C Major', f:[261, 329, 392]},
+        {k:'ADF', n:'D minor', f:[293, 349, 440]},
+        {k:'BEG', n:'E minor', f:[329, 392, 493]},
+        {k:'ACF', n:'F Major', f:[349, 440, 523]},
+        {k:'BDG', n:'G Major', f:[392, 493, 587]},
+        {k:'ACE', n:'A minor', f:[440, 523, 659]},
+        {k:'BDF', n:'Bm(b5)', f:[493, 587, 698]} // B-D-F 순서 무관
     ];
 
-    let board = [];
-    let score = 0;
-    let paused = false;
-    let gameOver = false;
-    let dropInterval = 500; 
-    let dropStart = Date.now();
-    let gameStartTime = null;
-    let timerId = null;
-    let p, nextP;
+    let board = [], score = 0, paused = false, gameOver = false;
+    let dropStart = Date.now(), gameStart = null, p = null, nextNote = '';
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playWoodSound() {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function playGuitarChord(freqs) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        freqs.forEach((f, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.05));
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime + (i * 0.05));
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime + (i * 0.05)); osc.stop(audioCtx.currentTime + 1.0);
+        });
+    }
+
+    function resize() {
+        const container = document.getElementById('game-container');
+        SQ = Math.min(container.clientWidth / (COLS+1), container.clientHeight / (ROWS+1));
+        canvas.width = COLS * SQ; canvas.height = ROWS * SQ;
+        drawBoard();
+    }
 
     function initBoard() {
-        board = [];
-        for(let r = 0; r < ROW; r++){
-            board[r] = [];
-            for(let c = 0; c < COL; c++) board[r][c] = { letter: null, color: VACANT, highlight: false, isFloating: false, scale: 1 };
+        board = Array.from({length: ROWS}, () => Array.from({length: COLS}, () => ({L:null, f:false, h:false, s:1})));
+    }
+
+    function drawSq(x, y, L, f=false, h=false, scale=1) {
+        ctx.save();
+        ctx.translate(x*SQ + SQ/2, y*SQ + SQ/2);
+        ctx.scale(scale, scale);
+        ctx.fillStyle = h ? "#ffd600" : (L ? (f ? "#2e7d32" : (L==='#'||L==='b' ? "#ffb300" : "#4e342e")) : "rgba(255,255,255,0.05)");
+        ctx.fillRect(-SQ/2 + 1, -SQ/2 + 1, SQ - 2, SQ - 2);
+        if(L) {
+            ctx.fillStyle = (L==='#'||L==='b') ? "#000" : "#fff";
+            ctx.font = `bold ${SQ*0.6}px Arial`; ctx.textAlign = "center"; ctx.fillText(L, 0, SQ*0.22);
         }
+        ctx.restore();
     }
 
-    function drawNext() {
-        nCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-        if(!nextP) return;
-        const letter = nextP.letter;
-        const color = (letter === '#' || letter === 'b') ? "#ffb300" : "#ef6c00";
-        nCtx.fillStyle = color;
-        nCtx.fillRect(10, 10, 30, 30);
-        nCtx.fillStyle = (letter === '#' || letter === 'b') ? "#000" : "#fff";
-        nCtx.font = "bold 18px Arial";
-        nCtx.textAlign = "center";
-        nCtx.fillText(letter, 25, 31);
-    }
-
-    function drawSquare(x, y, cell) {
-        const { letter, color, highlight, scale } = cell;
-        ctx.fillStyle = highlight ? "#ffd600" : color;
-        ctx.fillRect(x*SQ, y*SQ, SQ, SQ);
-        ctx.strokeStyle = "rgba(255,255,255,0.1)";
-        ctx.strokeRect(x*SQ, y*SQ, SQ, SQ);
-        if(letter) {
-            ctx.fillStyle = (letter === '#' || letter === 'b') ? "#000" : (highlight ? "#000" : "#fff");
-            const fontSize = (SQ * 0.6) * (scale || 1);
-            ctx.font = `bold ${fontSize}px Arial`;
-            ctx.textAlign = "center";
-            ctx.fillText(letter, x*SQ + SQ/2, y*SQ + SQ/2 + (fontSize/3));
-        }
-    }
-
-    function drawBoard(){
-        ctx.clearRect(0,0, canvas.width, canvas.height);
-        for(let r = 0; r < ROW; r++){
-            for(let c = 0; c < COL; c++) drawSquare(c, r, board[r][c]);
-        }
-    }
-
-    function getRandomNote() {
-        const rand = Math.random();
-        let letter = rand < 0.08 ? '#' : (rand < 0.16 ? 'b' : NOTES[Math.floor(Math.random() * NOTES.length)]);
-        return { letter };
+    function drawBoard() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for(let r=0; r<ROWS; r++) for(let c=0; c<COLS; c++) drawSq(c, r, board[r][c].L, board[r][c].f, board[r][c].h, board[r][c].s);
+        if(p && !gameOver) drawSq(p.x, p.y, p.L, false, false, 1);
     }
 
     class Piece {
-        constructor(data) {
-            this.letter = data.letter;
-            this.x = Math.floor(COL/2) - 1;
-            this.y = -1;
-        }
-        draw() { drawSquare(this.x, this.y, { letter: this.letter, color: "#ef6c00" }); }
+        constructor(L) { this.L = L; this.x = 4; this.y = 0; }
         moveDown() {
-            if(gameOver || paused) return;
-            if(!this.collision(0, 1)){ this.y++; drawBoard(); this.draw(); } 
-            else { this.lock(); }
+            if(!this.collision(0,1)) { this.y++; drawBoard(); }
+            else { playWoodSound(); this.lock(); }
         }
-        moveLeft() { if(!this.collision(-1, 0)) { this.x--; drawBoard(); this.draw(); } }
-        moveRight() { if(!this.collision(1, 0)) { this.x++; drawBoard(); this.draw(); } }
-        collision(x, y) {
-            let nX = this.x + x, nY = this.y + y;
-            if(nX < 0 || nX >= COL || nY >= ROW) return true;
-            if(nY >= 0 && board[nY][nX].letter !== null) return true;
+        collision(dx, dy) {
+            let nx = this.x + dx, ny = this.y + dy;
+            if(nx<0 || nx>=COLS || ny>=ROWS) return true;
+            if(ny>=0 && board[ny][nx].L) return true;
             return false;
         }
         lock() {
-            if(this.y < 0) { gameOver = true; showMsg("GAME OVER"); return; }
-            board[this.y][this.x] = { letter: this.letter, color: "#4e342e", highlight: false, isFloating: false, scale: 1 };
-            checkAndProcess();
-            if(!gameOver) { p = new Piece(nextP); nextP = getRandomNote(); drawNext(); }
+            if(this.y <= 0) { gameOver = true; alert("Game Over!"); return; }
+            board[this.y][this.x] = {L: this.L, f: false, h: false, s: 1};
+            
+            // # 블럭 기능: 하나만 착지해도 8개 랜덤 생성
+            if(this.L === '#') {
+                let cnt = 0;
+                while(cnt < 8) {
+                    let rr = Math.floor(Math.random()*ROWS), rc = Math.floor(Math.random()*COLS);
+                    if(!board[rr][rc].L) { board[rr][rc]={L:NOTES[Math.floor(Math.random()*7)], f:true, h:false, s:1}; cnt++; }
+                }
+            }
+            // b 블럭 기능: 3x3 범위 폭발
+            if(this.L === 'b') {
+                for(let r=this.y-1; r<=this.y+1; r++) for(let c=this.x-1; c<=this.x+1; c++)
+                    if(r>=0 && r<ROWS && c>=0 && c<COLS) board[r][c] = {L:null, f:false, h:false, s:1};
+            }
+            check();
+            p = new Piece(nextNote); nextNote = getNote();
+            drawNext();
         }
     }
 
-    async function checkAndProcess() {
-        let toRemove = new Set();
-        let currentScore = 0;
-        const checkDirs = [{dx:1, dy:0}, {dx:0, dy:1}, {dx:1, dy:1}, {dx:-1, dy:1}];
-        
-        for(let r=0; r<ROW; r++) {
-            for(let c=0; c<COL; c++) {
-                if(!board[r][c].letter) continue;
-                checkDirs.forEach(dir => {
-                    let seq = [];
+    function getNote() {
+        const r = Math.random();
+        if(r < 0.05) return '#'; // 5% 확률
+        if(r < 0.15) return 'b'; // 10% 확률
+        return NOTES[Math.floor(Math.random()*7)]; // 85% 확률
+    }
+
+    async function check() {
+        let matches = [];
+        let chordName = "";
+        let chordFreq = null;
+        const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+
+        for(let r=0; r<ROWS; r++) {
+            for(let c=0; c<COLS; c++) {
+                if(!board[r][c].L || board[r][c].L==='b') continue;
+                dirs.forEach(d => {
+                    let combo = [];
                     for(let i=0; i<3; i++) {
-                        let nr = r + dir.dy*i, nc = c + dir.dx*i;
-                        if(nr>=0 && nr<ROW && nc>=0 && nc<COL && board[nr][nc].letter) seq.push({r: nr, c: nc, L: board[nr][nc].letter});
+                        let nr = r + d[0]*i, nc = c + d[1]*i;
+                        if(nr>=0 && nr<ROWS && nc>=0 && nc<COLS && board[nr][nc].L) combo.push({r:nr, c:nc, L:board[nr][nc].L});
                     }
-                    if(seq.length === 3) {
-                        let sorted = seq.map(s => s.L).sort().join('');
-                        let match = CHORD_DB.find(rule => rule.keys === sorted);
-                        if(match || (seq[0].L === seq[1].L && seq[1].L === seq[2].L)) {
-                            seq.forEach(s => { board[s.r][s.c].highlight = true; toRemove.add(`${s.r},${s.c}`); });
-                            currentScore += 100;
+                    if(combo.length === 3) {
+                        let isSharp = combo.every(v => v.L === '#');
+                        let txt = combo.map(v=>v.L).sort().join('');
+                        let match = CHORDS.find(ch => ch.k === txt);
+                        let isSame = (combo[0].L === combo[1].L && combo[1].L === combo[2].L);
+
+                        if(isSharp || match || isSame) {
+                            combo.forEach(pos => { if(!matches.some(m => m.r === pos.r && m.c === pos.c)) matches.push(pos); });
+                            if(isSharp) chordName = "SHARP CLEAN!";
+                            else if(match) { chordName = match.n; chordFreq = match.f; }
+                            else chordName = "3-MATCH!";
                         }
                     }
                 });
             }
         }
 
-        if(toRemove.size > 0) {
+        if(matches.length > 0) {
             paused = true;
-            score += currentScore;
-            scoreElement.innerText = score;
-            await new Promise(r => setTimeout(r, 500));
-            toRemove.forEach(pos => { let [pr, pc] = pos.split(',').map(Number); board[pr][pc] = { letter: null, color: VACANT }; });
-            applyGravity();
-            drawBoard();
-            paused = false;
-            checkAndProcess();
+            chordNotify.innerText = chordName; chordNotify.style.display = "block";
+            if(chordFreq) playGuitarChord(chordFreq);
+
+            let start = Date.now();
+            const ani = () => {
+                let dur = Date.now() - start;
+                if(dur < 800) {
+                    matches.forEach(v => { board[v.r][v.c].h = true; board[v.r][v.c].s = 1 + (dur/800 * 3.0); });
+                    drawBoard(); requestAnimationFrame(ani);
+                } else {
+                    matches.forEach(v => { board[v.r][v.c] = {L:null, f:false, h:false, s:1}; });
+                    score += matches.length * 10;
+                    scoreEl.innerText = score;
+                    chordNotify.style.display = "none"; gravity(); drawBoard(); paused = false;
+                    check(); 
+                }
+            };
+            ani();
         }
     }
 
-    function applyGravity() {
-        for(let c=0; c<COL; c++) {
-            for(let r=ROW-1; r>0; r--) {
-                if(board[r][c].letter === null) {
-                    for(let kr=r-1; kr>=0; kr--) {
-                        if(board[kr][c].letter !== null) {
-                            board[r][c] = board[kr][c];
-                            board[kr][c] = { letter: null, color: VACANT };
-                            break;
-                        }
-                    }
-                }
+    function gravity() {
+        for(let c=0; c<COLS; c++) for(let r=ROWS-1; r>0; r--) if(!board[r][c].L) {
+            for(let k=r-1; k>=0; k--) if(board[k][c].L && !board[k][c].f) {
+                board[r][c] = board[k][c]; board[k][c] = {L:null, f:false, h:false, s:1}; break;
             }
         }
     }
 
-    function updateTimer() {
+    function drawNext() {
+        nCtx.clearRect(0,0,36,36); nCtx.fillStyle = "#ffca28"; nCtx.font = "bold 18px Arial";
+        nCtx.textAlign = "center"; nCtx.fillText(nextNote, 18, 24);
+    }
+
+    function togglePause() { paused = !paused; }
+
+    function handleMove(dir) {
         if(paused || gameOver) return;
-        const diff = Math.floor((Date.now() - gameStartTime) / 1000);
-        const m = String(Math.floor(diff / 60)).padStart(2, '0');
-        const s = String(diff % 60).padStart(2, '0');
-        timerElement.innerText = `${m}:${s}`;
+        if(dir === 'L' && !p.collision(-1,0)) p.x--;
+        if(dir === 'R' && !p.collision(1,0)) p.x++;
+        if(dir === 'D') p.moveDown();
+        drawBoard();
     }
 
-    function showMsg(text) {
-        msgElement.innerText = text;
-        setTimeout(() => { if(msgElement.innerText === text) msgElement.innerText = ""; }, 2000);
+    function startGame() {
+        document.getElementById('splash').style.opacity = '0';
+        setTimeout(() => document.getElementById('splash').style.display = 'none', 800);
+        initBoard(); gameStart = Date.now();
+        p = new Piece(getNote()); nextNote = getNote();
+        drawNext(); resize(); run();
     }
 
-    function resetGame() {
-        initBoard(); score = 0; scoreElement.innerText = "0";
-        gameOver = false; paused = false;
-        gameStartTime = Date.now();
-        if(timerId) clearInterval(timerId);
-        timerId = setInterval(updateTimer, 1000);
-        p = new Piece(getRandomNote());
-        nextP = getRandomNote();
-        drawNext(); drawBoard();
-    }
-
-    function drop() {
-        let now = Date.now();
-        if(now - dropStart > dropInterval && !paused && !gameOver) { p.moveDown(); dropStart = now; }
-        requestAnimationFrame(drop);
-    }
-
-    // 터치 이벤트 연결
-    document.getElementById('leftBtn').addEventListener('touchstart', (e) => { e.preventDefault(); p.moveLeft(); });
-    document.getElementById('rightBtn').addEventListener('touchstart', (e) => { e.preventDefault(); p.moveRight(); });
-    document.getElementById('downBtn').addEventListener('touchstart', (e) => { e.preventDefault(); p.moveDown(); });
-    document.getElementById('hardDropBtn').addEventListener('touchstart', (e) => { 
-        e.preventDefault(); 
-        while(!p.collision(0,1)) { p.y++; }
-        p.lock();
-    });
-
-    // 키보드 지원 (노트북용 유지)
-    document.addEventListener("keydown", e => {
+    function run() {
         if(!paused && !gameOver) {
-            if(e.keyCode === 37) p.moveLeft();
-            if(e.keyCode === 39) p.moveRight();
-            if(e.keyCode === 40) p.moveDown();
+            let now = Date.now();
+            if(now - dropStart > 900) { p.moveDown(); dropStart = now; }
+            let diff = Math.floor((now - gameStart)/1000);
+            timeEl.innerText = `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
         }
-    });
+        requestAnimationFrame(run);
+    }
 
-    resetGame(); drop();
+    // 터치 지연 방지 이벤트
+    document.getElementById('leftBtn').addEventListener('touchstart', (e) => { e.preventDefault(); handleMove('L'); }, {passive: false});
+    document.getElementById('rightBtn').addEventListener('touchstart', (e) => { e.preventDefault(); handleMove('R'); }, {passive: false});
+    document.getElementById('downBtn').addEventListener('touchstart', (e) => { e.preventDefault(); handleMove('D'); }, {passive: false});
+    document.getElementById('dropBtn').addEventListener('touchstart', (e) => { 
+        e.preventDefault(); if(!paused && !gameOver) { while(!p.collision(0,1)) p.y++; playWoodSound(); p.lock(); drawBoard(); }
+    }, {passive: false});
+
+    window.onload = () => setTimeout(startGame, 1800);
+    window.addEventListener('resize', resize);
 </script>
 </body>
 </html>
